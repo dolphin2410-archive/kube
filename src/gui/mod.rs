@@ -1,16 +1,12 @@
-use std::fs::File;
-use std::io::Read;
 use nfd::Response;
 use web_view::Content;
 
 pub fn start() {
-    let mut file = File::open("hello.html").unwrap();
-    let mut str = String::new();
-    file.read_to_string(&mut str).unwrap();
-    let html_content = &str.as_str();
+    let html_content = include_str!("../../resources/root.html");
+    let _target_zip = include_bytes!(include_str!("../../target.txt"));
 
     web_view::builder()
-        .title("Kube")
+        .title("kube")
         .content(Content::Html(html_content))
         .size(800, 500)
         .resizable(false)
@@ -29,7 +25,10 @@ pub fn start() {
                         _ => {}
                     }
                 },
-                _ => unimplemented!(),
+                "next_page" => {
+                    todo!("Must do!")
+                }
+                _ => unimplemented!()
             };
 
             Ok(())
