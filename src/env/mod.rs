@@ -1,5 +1,4 @@
 use std::process::{Command, Stdio};
-use regex::Regex;
 
 #[cfg(target_os = "windows")]
 const PATH: &str = ";%PATH%";
