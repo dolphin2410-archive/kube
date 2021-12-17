@@ -1,7 +1,9 @@
 use std::time::Duration;
-use eframe::egui::{CentralPanel, CtxRef, Rgba, Vec2};
-use eframe::epi::{App, Frame, Storage};
+use eframe::egui::{CentralPanel, CtxRef, Image, Rgba, Vec2};
+use eframe::epi::{App, Frame, IconData, Storage};
 use eframe::{NativeOptions, run_native};
+use eframe::egui::menu::menu;
+use image::GenericImageView;
 
 pub mod env;
 
@@ -28,5 +30,17 @@ impl App for MainApplication {
 
 fn main() {
     let app = MainApplication;
-    run_native(Box::new(app), NativeOptions::default());
+    let mut options = NativeOptions::default();
+    let img = image::open("profile.png").unwrap();
+    let rgba = img.to_rgba8();
+    let (width, height) = img.dimensions();
+    options.icon_data = Some(IconData {
+        rgba: rgba.to_vec(),
+        width,
+        height
+    });
+    options.decorated = false;
+
+
+    run_native(Box::new(app), options);
 }
