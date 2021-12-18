@@ -54,8 +54,12 @@
             min-width: 50vw;
         }
 
-        .container>* {
+        .container>*:not(.f_small) {
             margin: 10px;
+        }
+
+        .f_small {
+            margin-left: 10px
         }
 
         .btn {
@@ -86,12 +90,18 @@
             border: none;
             border-radius: 10px;
         }
+
+        .f_small {
+            font-size: 0.75em;
+            display: none;
+        }
     </style>
 </head>
 
 <body>
     <div class="container">
         <h1 class="pad">Installer</h1>
+        <p class="f_small">File doesn't exist</p>
         <span class="wrapper">
             <input type="text" class="inp">
             <button class="file_btn" onclick="external.invoke('open_file')">
@@ -108,13 +118,29 @@
 
             </button>
         </span>
-        <button onclick="external.invoke('hello')" class="btn">Next</button>
+        <button onclick="next_page()" class="btn">Next</button>
 
         <script type="text/javascript">
             let input = document.querySelector(".inp")
+            let wrapper = document.querySelector(".wrapper")
+            let file_no_exist = document.querySelector(".f_small")
 
             function update_folder(path) {
                 input.value = path
+            }
+
+            function next_page() {
+                external.invoke('next_page:' + input.value)
+            }
+
+            function no_file() {
+                wrapper.style["border-color"] = "red"
+                file_no_exist.style["color"] = "red"
+                file_no_exist.style["display"] = "block"
+            }
+
+            function move_page(html) {
+                document.querySelector("html").innerHTML = html
             }
         </script>
     </div>
