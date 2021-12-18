@@ -1,6 +1,7 @@
 import sys
 import os
 import shutil
+from enum import Enum
 
 # OS Type Enum
 class OS(Enum):
