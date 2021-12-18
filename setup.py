@@ -47,6 +47,7 @@ if shutil.which("cargo") is None:
 
 os.popen("git clone https://github.com/dolphin2410/kube")
 shutil.copy("target.txt", "kube/target.txt")
+shutil.copy("app.txt", "kube/app.txt")
 f = open("target.txt", "r")
 zip_archive = f.read()
 shutil.copy(zip_archive, "kube/" + zip_archive)
