@@ -43,8 +43,7 @@ pub fn render(html: &str) {
                         if !exists {
                             webview.eval("no_file()").unwrap();
                         } else {
-                            println!("WOW");
-                            webview.eval(&format!(r#"move_page("{}")"#, next_page())).unwrap();
+                            webview.eval(&format!("move_page('{}')", next_page().replace("\r", "").replace("\n", "\\n"))).unwrap();
                         }
                     }
                 }
