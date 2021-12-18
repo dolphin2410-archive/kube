@@ -1,18 +1,18 @@
 use std::process::{Command, Stdio};
 
 #[cfg(target_os = "windows")]
-const PATH: &str = ";%PATH%";
+const PATH: &str = ";";
 
 #[cfg(target_family = "unix")]
-const PATH: &str = ":$PATH";
+const PATH: &str = ":";
 
 pub fn add_path(path: &str) {
-    let path = path.to_owned() + PATH;
-    set_value("PATH", &path.as_str());
+    set_value("Path", &format!("{}{}{}", path, PATH, std::env::var("PATH").unwrap()));
 }
 
 #[cfg(target_family = "windows")]
 pub fn set_value(key: &str, value: &str) {
+    println!("{}", value);
     let mut child = Command::new("setx")
         .args(vec!["/m", key, value])
         .stdout(Stdio::inherit())

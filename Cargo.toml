@@ -6,3 +6,4 @@ edition = "2021"
 [dependencies]
 web-view = "0.7.3"
 nfd = "0.0.4"
+zip = "0.5.13"
