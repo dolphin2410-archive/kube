@@ -4,21 +4,27 @@ use std::io::prelude::*;
 use std::io::BufWriter;
 use std::path::Path;
 use web_view::Content;
+use std::fs;
+use zip::ZipArchive;
+use crate::env;
 
-// 발코딩 ㅅㄱ
+/// The bytes of the zip file to be installed
+const ZIP_BYTES: &[u8] = include_bytes!(concat!("../../", include_str!("../../target.txt")));
 
-const ZIP_ARCHIVE: &[u8] = include_bytes!(concat!("../../", include_str!("../../target.txt")));
-
+/// The application name to install
 const APP_NAME: &str = include_str!("../../app.txt");
 
+/// The root HTML
 pub fn root() -> &'static str {
     include_str!("../../resources/root.html")
 }
 
+/// The final page HTML
 pub fn next_page() -> &'static str {
     include_str!("../../resources/next_page.html")
 }
 
+/// Render the WebView
 pub fn render(html: &str) {
     web_view::builder()
         .title("kube")
@@ -28,9 +34,8 @@ pub fn render(html: &str) {
         .user_data(())
         .invoke_handler(|webview, arg| {
             match arg {
-                "hello" => {
-                    println!("Hello, World!");
-                }
+
+                // Open the file exploring request
                 "open_file" => {
                     let result = nfd::open_pick_folder(None).unwrap();
                     match result {
@@ -41,65 +46,105 @@ pub fn render(html: &str) {
                         }
                         _ => {}
                     }
-                }
+                },
+
+                // Exit the view
                 "exit" => {
                     webview.exit();
-                }
+                },
                 _ => {
                     if arg.starts_with("next_page:") {
+
+                        // Read the pathname
                         let pathname = arg.replace("next_page:", "");
 
+                        // Pathname to &str
                         let pathname_str = pathname.as_str();
 
+                        // The path
                         let path = Path::new(pathname_str);
 
+                        // Check whether the code should stop
                         let mut success = true;
 
+                        // Parent
                         if let Some(parent) = path.parent() {
+
+                            // If the parent folder doesn't exist
                             if !parent.exists() {
+
+                                // Send a warning that says the parent folder doesn't exist
                                 webview.eval("no_file()").unwrap();
+
+                                // Stop here
                                 success = false;
                             }
+                        } else {
+
+                            // Stop
+                            success = false;
                         }
 
+                        // Run if the code isn't broken in the middle
                         if success {
-                            let exists = path.exists();
 
+                            // Whether the path exists
+                            let exists = path.exists();
+                            
+                            // Execute if the folder doesn't exist or if the folder is empty
                             if !exists || (exists && path.read_dir().unwrap().next().is_none()) {
+
+                                // If the folder doesn't exist, create a new one
                                 if !exists {
-                                    std::fs::create_dir(path).unwrap();
+                                    fs::create_dir(path).unwrap();
                                 }
 
-                                webview
-                                    .eval(&format!(
-                                        "move_page('{}')",
-                                        next_page().replace("\r", "").replace("\n", "\\n")
-                                    ))
-                                    .unwrap();
-                                let mut name = String::from(pathname_str);
-                                name.push_str("/");
-                                name.push_str(APP_NAME);
-                                name.push_str(".zip");
-
-                                let mut file =
-                                    BufWriter::new(File::create(&name.as_str()).unwrap());
-                                file.write_all(ZIP_ARCHIVE).unwrap();
+                                // The next page HTML
+                                webview.eval(&format!("move_page('{}')", next_page().replace("\r", "").replace("\n", "\\n"))).unwrap();
+                                
+                                // The name of the target zip file that the bytes will be stored
+                                let zip_filename = &format!("{}/{}.zip", pathname_str, APP_NAME);
+                                
+                                // The zip file where the bytes are stored
+                                let mut zipfile = BufWriter::new(File::create(zip_filename).unwrap());
+                                    
+                                // Write bytes to the zip file
+                                zipfile.write_all(ZIP_BYTES).unwrap();
+                                
+                                // 20% Done
                                 webview.eval(&format!("update_size(20)")).unwrap();
-                                let mut name2 = String::from(pathname_str);
-                                name2.push_str("/");
-                                name2.push_str(APP_NAME);
-                                let mut archive =
-                                    zip::ZipArchive::new(File::open(&name.as_str()).unwrap())
-                                        .unwrap();
-                                std::fs::create_dir(&name2.as_str()).unwrap();
-                                archive.extract(Path::new(&name2.as_str())).unwrap();
+                                
+                                // The name of the folder where the archive will be extracted
+                                let folder_name = &format!("{}/{}/", pathname_str, APP_NAME);
+                                
+                                // The ZipArchive
+                                let mut zip_archive = ZipArchive::new(File::open(zip_filename).unwrap()).unwrap();
+                                
+                                // Create the folder where the zip contents will be extracted
+                                fs::create_dir(folder_name).unwrap();
+                                
+                                // Extract the zipfile
+                                zip_archive.extract(Path::new(folder_name)).unwrap();
+                                
+                                // 80% Done
                                 webview.eval(&format!("update_size(80)")).unwrap();
-                                name2.push_str("/bin");
-                                crate::env::add_path(&name2.as_str());
-                                std::fs::remove_file(Path::new(&name.as_str())).unwrap();
+                                
+                                // Save Environment variable to the 'bin' folder
+                                env::add_path(&format!("{}{}", folder_name, "/bin"));
+                                
+                                // Delete the zipfile
+                                fs::remove_file(Path::new(zip_filename)).unwrap();
+                                
+                                // 100% Complete!
                                 webview.eval(&format!("update_size(100)")).unwrap();
+
+                                // Enable Button
                                 webview.eval(&format!("enable_btn()")).unwrap();
+
+                            // Execute if the folder exists and isn't empty
                             } else {
+
+                                // Show warning that the file already exists
                                 webview.eval("yes_file()").unwrap();
                             }
                         }
@@ -115,6 +160,7 @@ pub fn render(html: &str) {
         .unwrap();
 }
 
+/// Start the GUI
 pub fn start() {
     render(root());
 }
