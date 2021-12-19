@@ -105,11 +105,11 @@ if current_os == OS.WINDOWS:
 else:
     shutil.copy("kube/target/release/kube", "installer")
 
-if not os.access("kube", os.W_OK):
-    os.chmod("kube", stat.S_IWUSR)
-
-# Remove the Kube folder
-shutil.rmtree("kube")
+# Delete kube
+if current_os == OS.WINDOWS:
+    os.system("rmdir kube /s /q")
+else:
+    os.system("rm -rf kube")
 
 # Process End
-print("DONE!")
+print("Complete!")
