@@ -150,11 +150,12 @@ pub fn render(html: &str) {
                                     ))
                                     .unwrap();
 
+                                // TODO Fix block_on
                                 tokio::runtime::Builder::new_multi_thread()
                                     .enable_all()
                                     .build()
                                     .unwrap()
-                                    .spawn(handle(pathname_str, webview));
+                                    .block_on(handle(pathname_str, webview));
 
                             // Execute if the folder exists and isn't empty
                             } else {
