@@ -9,10 +9,12 @@ pub async fn unzip(source: &str, target: &str) {
 
 #[cfg(target_family = "windows")]
 pub fn unzip_cmd(source: &str, target: &str) {
-    Command::new("tar")
+    let result = Command::new("tar")
         .args(vec!["-xf", source , "-C", target])
         .output()
         .unwrap();
+
+    String::from_utf8(result.stdout);
 }
 
 #[cfg(target_family = "unix")]
