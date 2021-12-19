@@ -82,14 +82,14 @@ os.system("rm -rf kube")
 os.system("git clone https://github.com/dolphin2410/kube")
 
 # Write Target
-f = open("kube/target.txt", "w+")
-f.write(target)
-f.close()
+f1 = open("kube/target.txt", "w+")
+f1.write(target)
+f1.close()
 
 # Write App
-f = open("kube/app.txt", "w+")
-f.write(app)
-f.close()
+f2 = open("kube/app.txt", "w+")
+f2.write(app)
+f2.close()
 
 # Get the archive provided by the target.txt file
 shutil.copy(target, "kube/" + target)
