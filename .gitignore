@@ -1,4 +1,5 @@
-/target
+target/
 target.txt
 school.zip
 app.txt
+test/
