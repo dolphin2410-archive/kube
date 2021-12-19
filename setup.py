@@ -19,6 +19,7 @@ import os
 import shutil
 from enum import Enum
 import subprocess
+import stat
 
 # OS Type Enum
 class OS(Enum):
@@ -100,6 +101,9 @@ if current_os == OS.WINDOWS:
     shutil.copy("kube/target/release/kube.exe", "installer.exe")
 else:
     shutil.copy("kube/target/release/kube", "installer")
+
+if not os.access("kube", os.W_OK):
+    os.chmod("kube", stat.S_IWUSR)
 
 # Remove the Kube folder
 shutil.rmtree("kube")
