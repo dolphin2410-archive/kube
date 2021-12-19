@@ -21,6 +21,9 @@ from enum import Enum
 import subprocess
 import stat
 
+target = sys.argv[1]
+app = sys.argv[2]
+
 # OS Type Enum
 class OS(Enum):
     WINDOWS = 0
@@ -76,16 +79,16 @@ os.system("rm -rf kube")
 # Clone the kube project from GitHub
 os.system("git clone https://github.com/dolphin2410/kube")
 
-# Copy target.txt into the kube folder
-shutil.copy("target.txt", "kube/target.txt")
+# Write Target
+f = open("kube/target.txt", "w+")
+f.write(target)
 
-# Copy app.txt into the kube folder
-shutil.copy("app.txt", "kube/app.txt")
+# Write App
+f = open("kube/app.txt", "w+")
+f.write(app)
 
 # Get the archive provided by the target.txt file
-f = open("target.txt", "r")
-zip_archive = f.read()
-shutil.copy(zip_archive, "kube/" + zip_archive)
+shutil.copy(target, "kube/" + target)
 
 # Setup Linux Dependencies
 if current_os == OS.LINUX:
