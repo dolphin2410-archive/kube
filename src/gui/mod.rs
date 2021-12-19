@@ -29,6 +29,8 @@ pub async fn handle(pathname_str: &str, webview: &mut WebView<'_, ()>) {
 
     println!("Handler Executed");
 
+    println!("App name: {}", APP_NAME);
+
     // The name of the target zip file that the bytes will be stored
     let zip_filename = &format!("{}/{}.zip", pathname_str, APP_NAME);
 
