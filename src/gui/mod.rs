@@ -57,7 +57,7 @@ pub async fn handle(pathname_str: &str, webview: &mut WebView<'_, ()>) {
     webview.eval(&format!("update_size(80)")).unwrap();
 
     // Save Environment variable to the 'bin' folder
-    env::add_path(&format!("{}{}", folder_name, "/bin"));
+    env::add_path(&format!("{}{}", folder_name, "bin"));
 
     // Delete the zipfile
     fs::remove_file(Path::new(zip_filename)).await.unwrap();
