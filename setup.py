@@ -23,6 +23,8 @@ import stat
 
 target = sys.argv[1]
 app = sys.argv[2]
+print("target: " + target)
+print("app: " + app)
 
 # OS Type Enum
 class OS(Enum):

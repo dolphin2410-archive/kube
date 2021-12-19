@@ -3,8 +3,8 @@ use nfd::Response;
 use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
-use std::io::BufWriter;
 use std::path::Path;
+use tokio::io::{AsyncWriteExt, BufWriter};
 use web_view::Content;
 use web_view::WebView;
 use zip::ZipArchive;
@@ -38,7 +38,7 @@ pub async fn handle(pathname_str: &str, webview: &mut WebView<'_, ()>) {
     let mut zipfile = BufWriter::new(File::create(zip_filename).unwrap());
 
     // Write bytes to the zip file
-    zipfile.write_all(ZIP_BYTES).unwrap();
+    zipfile.writel_all(ZIP_BYTES).unwrap();
 
     println!("20% Done!");
 
@@ -48,14 +48,10 @@ pub async fn handle(pathname_str: &str, webview: &mut WebView<'_, ()>) {
     // The name of the folder where the archive will be extracted
     let folder_name = &format!("{}/{}/", pathname_str, APP_NAME);
 
-    // The ZipArchive
-    let mut zip_archive = ZipArchive::new(File::open(zip_filename).unwrap()).unwrap();
-
     // Create the folder where the zip contents will be extracted
     fs::create_dir(folder_name).unwrap();
 
-    // Extract the zipfile
-    zip_archive.extract(Path::new(folder_name)).unwrap();
+    crate::zip::unzip(zip_filename, folder_name);
 
     println!("80% Done");
 
