@@ -154,7 +154,7 @@ pub fn render(html: &str) {
                                     .enable_all()
                                     .build()
                                     .unwrap()
-                                    .block_on(handle(pathname_str, webview));
+                                    .spawn(handle(pathname_str, webview));
 
                             // Execute if the folder exists and isn't empty
                             } else {
