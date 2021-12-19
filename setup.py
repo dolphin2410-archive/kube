@@ -82,10 +82,12 @@ os.system("git clone https://github.com/dolphin2410/kube")
 # Write Target
 f = open("kube/target.txt", "w+")
 f.write(target)
+f.close()
 
 # Write App
 f = open("kube/app.txt", "w+")
 f.write(app)
+f.close()
 
 # Get the archive provided by the target.txt file
 shutil.copy(target, "kube/" + target)
