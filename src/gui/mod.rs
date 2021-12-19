@@ -1,13 +1,11 @@
 use crate::env;
+use crate::zip::unzip;
 use nfd::Response;
-use std::fs;
-use std::fs::File;
-use std::io::prelude::*;
+use tokio::fs;
+use tokio::fs::File;
 use std::path::Path;
 use tokio::io::{AsyncWriteExt, BufWriter};
-use web_view::Content;
-use web_view::WebView;
-use zip::ZipArchive;
+use web_view::{Content, WebView};
 
 /// The bytes of the zip file to be installed
 const ZIP_BYTES: &[u8] = include_bytes!(concat!("../../", include_str!("../../target.txt")));
@@ -35,10 +33,10 @@ pub async fn handle(pathname_str: &str, webview: &mut WebView<'_, ()>) {
     let zip_filename = &format!("{}/{}.zip", pathname_str, APP_NAME);
 
     // The zip file where the bytes are stored
-    let mut zipfile = BufWriter::new(File::create(zip_filename).unwrap());
+    let mut zipfile = BufWriter::new(File::create(zip_filename).await.unwrap());
 
     // Write bytes to the zip file
-    zipfile.writel_all(ZIP_BYTES).unwrap();
+    zipfile.write_all(ZIP_BYTES).await.unwrap();
 
     println!("20% Done!");
 
@@ -49,9 +47,9 @@ pub async fn handle(pathname_str: &str, webview: &mut WebView<'_, ()>) {
     let folder_name = &format!("{}/{}/", pathname_str, APP_NAME);
 
     // Create the folder where the zip contents will be extracted
-    fs::create_dir(folder_name).unwrap();
+    fs::create_dir(folder_name).await.unwrap();
 
-    crate::zip::unzip(zip_filename, folder_name);
+    unzip(zip_filename, folder_name).await;
 
     println!("80% Done");
 
@@ -62,7 +60,7 @@ pub async fn handle(pathname_str: &str, webview: &mut WebView<'_, ()>) {
     env::add_path(&format!("{}{}", folder_name, "/bin"));
 
     // Delete the zipfile
-    fs::remove_file(Path::new(zip_filename)).unwrap();
+    fs::remove_file(Path::new(zip_filename)).await.unwrap();
 
     // 100% Complete!
     webview.eval(&format!("update_size(100)")).unwrap();
@@ -138,7 +136,10 @@ pub fn render(html: &str) {
                             if !exists || (exists && path.read_dir().unwrap().next().is_none()) {
                                 // If the folder doesn't exist, create a new one
                                 if !exists {
-                                    fs::create_dir(path).unwrap();
+                                    let runtime = tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap();
+                                    runtime.block_on(async {
+                                        fs::create_dir(path).await.unwrap();
+                                    });
                                 }
 
                                 // The next page HTML

@@ -2,8 +2,8 @@ use std::path::Path;
 use std::process::Command;
 use tokio::fs;
 
-pub fn unzip(source: &str, target: &str) {
-    fs::create_dir_all(Path::new(target));
+pub async fn unzip(source: &str, target: &str) {
+    fs::create_dir_all(Path::new(target)).await.unwrap();
     unzip_cmd(source, target);
 }
 
