@@ -11,7 +11,7 @@ Kube is made to install a java application image made by `jlink`. The front-end 
 You can easily create the installer with `setup.py`. 
 
 ### Requirements
-- The `python` interpreter
+- The `python` interpreter version `3.x`
 - Windows, Mac or any Linux distribution
 
 ### Steps
@@ -22,16 +22,9 @@ You can easily create the installer with `setup.py`.
 curl -o setup.py https://raw.githubusercontent.com/dolphin2410/kube/main/setup.py
 ```
 
-2. Create `target.txt`
-> This should contain the name of the archive. Here's an example
-
-```bash
-path/to/archive.zip
-```
-
-3. Execute the `setup.py`
-> You can do this by running the following command
+2. Execute the `setup.py`
+> You can do this by running the following command. 
     
 ```bash
-python setup.py
+python setup.py path/to/archive.zip myapp
 ```
