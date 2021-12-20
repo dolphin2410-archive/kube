@@ -1,11 +1,11 @@
 use crate::env;
 use crate::zip::unzip;
-use nfd::Response;
-use tokio::fs;
-use tokio::fs::File;
-use std::path::Path;
+use tokio::fs::{self, File};
+use tokio::runtime::Builder;
 use tokio::io::{AsyncWriteExt, BufWriter};
 use web_view::{Content, WebView};
+use std::path::Path;
+use nfd::Response;
 
 /// The bytes of the zip file to be installed
 const ZIP_BYTES: &[u8] = include_bytes!(concat!("../../", include_str!("../../target.txt")));
@@ -25,10 +25,6 @@ pub fn next_page() -> &'static str {
 
 pub async fn handle(pathname_str: &str, webview: &mut WebView<'_, ()>) {
 
-    println!("Handler Executed");
-
-    println!("App name: {}", APP_NAME);
-
     // The name of the target zip file that the bytes will be stored
     let zip_filename = &format!("{}/{}.zip", pathname_str, APP_NAME);
 
@@ -37,8 +33,9 @@ pub async fn handle(pathname_str: &str, webview: &mut WebView<'_, ()>) {
 
     // Write bytes to the zip file
     zipfile.write_all(ZIP_BYTES).await.unwrap();
-
-    println!("20% Done!");
+    
+    // Finish Write
+    zipfile.flush().await.unwrap();
 
     // 20% Done
     webview.eval(&format!("update_size(20)")).unwrap();
@@ -49,9 +46,7 @@ pub async fn handle(pathname_str: &str, webview: &mut WebView<'_, ()>) {
     // Create the folder where the zip contents will be extracted
     fs::create_dir(folder_name).await.unwrap();
 
-    unzip(zip_filename, folder_name).await;
-
-    println!("80% Done");
+    unzip(zip_filename, folder_name);
 
     // 80% Done
     webview.eval(&format!("update_size(80)")).unwrap();
@@ -68,7 +63,6 @@ pub async fn handle(pathname_str: &str, webview: &mut WebView<'_, ()>) {
     // Enable Button
     webview.eval(&format!("enable_btn()")).unwrap();
 
-    println!("DONE");
 }
 
 /// Render the WebView
@@ -136,7 +130,7 @@ pub fn render(html: &str) {
                             if !exists || (exists && path.read_dir().unwrap().next().is_none()) {
                                 // If the folder doesn't exist, create a new one
                                 if !exists {
-                                    let runtime = tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap();
+                                    let runtime = Builder::new_current_thread().enable_all().build().unwrap();
                                     runtime.block_on(async {
                                         fs::create_dir(path).await.unwrap();
                                     });
@@ -151,7 +145,7 @@ pub fn render(html: &str) {
                                     .unwrap();
 
                                 // TODO Fix block_on
-                                tokio::runtime::Builder::new_multi_thread()
+                                Builder::new_multi_thread()
                                     .enable_all()
                                     .build()
                                     .unwrap()

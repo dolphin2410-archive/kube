@@ -16,58 +16,39 @@
 
 import sys
 import os
-import shutil
-from enum import Enum
 import subprocess
-import stat
 
-target = sys.argv[1]
+target = sys.argv[1].replace("/", "\\")
 app = sys.argv[2]
-print("target: " + target)
-print("app: " + app)
+auto_install = sys.argv[3] == "-y"
 
-# OS Type Enum
-class OS(Enum):
-    WINDOWS = 0
-    LINUX = 1
-    MACOS = 2
-
-current_os = None
-
-current_platform = sys.platform
-
-# Determine current OS
-if current_platform.startswith("win32"):
-    current_os = OS.WINDOWS
-elif current_platform.startswith("linux"):
-    current_os = OS.LINUX
-elif current_platform.startswith("darwin"):
-    current_os = OS.MACOS
-else:
-    # Other os than Windows, Linux or Macos
-    print("Unsupported OS: " + current_platform)
-    exit(-1)
+current_os = sys.platform
 
 # Check if git is installed
-if shutil.which("git") is None:
+try:
+    subprocess.run(["git", "--help"], stdout=subprocess.DEVNULL)
+except OSError as e:
     print("Git is not installed")
     exit(-1)
 
 # Check if cargo is installed
-if shutil.which("cargo") is None:
-    while True:
-        read = input("Rust is not installed. Install? [Y/n]")
-        if read == "\n" or read.lower() == "y":
-            # Break the loop and continue the installation process
-            break
-        elif read.lower() == "n":
-            # Exit if rust isn't installed
-            print("Rust is not installed")
-            exit(-1)
+try:
+    subprocess.run(["cargo", "-h"], stdout=subprocess.DEVNULL)
+except OSError as e:
+    if not auto_install:
+        while True:
+            read = input("Rust is not installed. Install? [Y/n]")
+            if read == "\n" or read.lower() == "y":
+                # Break the loop and continue the installation process
+                break
+            elif read.lower() == "n":
+                # Exit if rust isn't installed
+                print("Rust is not installed")
+                exit(-1)
 
     # Install Rust
-    if current_os == OS.LINUX or current_os == OS.MACOS:
-        # For Linux, use the script provided by the official rust website
+    if not current_os == "win32":
+        # For Unix, use the script provided by the official rust website
         os.system("curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y")
     else:
         # For Windows, Installs the executable and launches it. Afterwards, deletes it
@@ -76,7 +57,10 @@ if shutil.which("cargo") is None:
         os.remove("installer.exe")
 
 # Remove the kube folder if it already exists
-os.system("rm -rf kube")
+if current_os == "win32":
+    os.system("rmdir kube /S /Q")
+else:
+    subprocess.run(["rm", "-rf", "kube"], stdout=subprocess.DEVNULL)
 
 # Clone the kube project from GitHub
 os.system("git clone https://github.com/dolphin2410/kube")
@@ -92,10 +76,13 @@ f2.write(app)
 f2.close()
 
 # Get the archive provided by the target.txt file
-shutil.copy(target, "kube/" + target)
+if current_os == "win32":
+    os.system("copy " + target + " kube\\" + target)
+else:
+    subprocess.run(["cp", target, "kube/" + target], stdout=subprocess.DEVNULL)
 
 # Setup Linux Dependencies
-if current_os == OS.LINUX:
+if not current_os == "win32":
     os.system("sudo apt-get install libgtk-3-dev -y")
     os.system("sudo apt-get install libsoup2.4 -y")
     os.system("sudo apt-get install webkit2gtk-4.0 -y")
@@ -104,16 +91,15 @@ if current_os == OS.LINUX:
 os.system("cd kube && cargo build --release")
 
 # Move the generated executable to the root directory
-if current_os == OS.WINDOWS:
-    shutil.copy("kube/target/release/kube.exe", "installer.exe")
+if current_os == "win32":
+    os.system("copy kube\\target\\release\\kube.exe installer.exe /Y")
 else:
-    shutil.copy("kube/target/release/kube", "installer")
-
+    subprocess.run(["cp", "kube/target/release/kube", "installer"], stdout=subprocess.DEVNULL)
 # Delete kube
-if current_os == OS.WINDOWS:
-    os.system("rmdir kube /s /q")
+if current_os == "win32":
+    os.system("rmdir /S /Q kube")
 else:
-    os.system("rm -rf kube")
+    subprocess.run(["rm", "-rf", "kube"], stdout=subprocess.DEVNULL)
 
 # Process End
 print("Complete!")
