@@ -26,14 +26,14 @@ current_os = sys.platform
 
 # Check if git is installed
 try:
-    subprocess.run(["git", "--help"], stdout=subprocess.DEVNULL)
+    subprocess.call(["git", "--help"], stdout=open(os.devnull, 'wb'))
 except OSError as e:
     print("Git is not installed")
     exit(-1)
 
 # Check if cargo is installed
 try:
-    subprocess.run(["cargo", "-h"], stdout=subprocess.DEVNULL)
+    subprocess.call(["cargo", "-h"], stdout=open(os.devnull, 'wb'))
 except OSError as e:
     if not auto_install:
         while True:
@@ -60,7 +60,7 @@ except OSError as e:
 if current_os == "win32":
     os.system("rmdir kube /S /Q")
 else:
-    subprocess.run(["rm", "-rf", "kube"], stdout=subprocess.DEVNULL)
+    subprocess.call(["rm", "-rf", "kube"], stdout=open(os.devnull, 'wb'))
 
 # Clone the kube project from GitHub
 os.system("git clone https://github.com/dolphin2410/kube")
@@ -79,7 +79,7 @@ f2.close()
 if current_os == "win32":
     os.system("copy " + target + " kube\\" + target)
 else:
-    subprocess.run(["cp", target, "kube/" + target], stdout=subprocess.DEVNULL)
+    subprocess.call(["cp", target, "kube/" + target], stdout=open(os.devnull, 'wb'))
 
 # Setup Linux Dependencies
 if not current_os == "win32":
@@ -94,12 +94,12 @@ os.system("cd kube && cargo build --release")
 if current_os == "win32":
     os.system("copy kube\\target\\release\\kube.exe installer.exe /Y")
 else:
-    subprocess.run(["cp", "kube/target/release/kube", "installer"], stdout=subprocess.DEVNULL)
+    subprocess.call(["cp", "kube/target/release/kube", "installer"], stdout=open(os.devnull, 'wb'))
 # Delete kube
 if current_os == "win32":
     os.system("rmdir /S /Q kube")
 else:
-    subprocess.run(["rm", "-rf", "kube"], stdout=subprocess.DEVNULL)
+    subprocess.call(["rm", "-rf", "kube"], stdout=open(os.devnull, 'wb'))
 
 # Process End
 print("Complete!")
