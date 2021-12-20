@@ -13,8 +13,8 @@ pub fn unzip_cmd(source: &str, target: &str) {
         .args(vec!["-xf", source , "-C", target])
         .output()
         .unwrap();
-
-    String::from_utf8(result.stdout);
+    let stri = String::from_utf8(result.stdout);
+    println!("{}", stri.unwrap());
 }
 
 #[cfg(target_family = "unix")]
